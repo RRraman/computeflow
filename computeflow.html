@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComputeFlow — Your skills should pay for your AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --cream-dark: #F2EDE4;
+    --warm-tan: #E8DDD0;
+    --text-dark: #1A1510;
+    --text-mid: #5C4F3D;
+    --text-light: #9C8E7E;
+    --accent-orange: #E8621A;
+    --accent-gold: #D4A843;
+    --accent-green: #3D7A5C;
+    --accent-blue: #2D5FA8;
+    --card-bg: #FFFFFF;
+    --border: rgba(92,79,61,0.12);
+    --shadow: 0 8px 40px rgba(26,21,16,0.08);
+    --shadow-lg: 0 20px 60px rgba(26,21,16,0.14);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  #cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--accent-orange);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: multiply;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--accent-orange);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.12s ease, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.5;
+  }
+  body:hover #cursor { opacity: 1; }
+
+  /* Blob Background */
+  .blob-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .blob-1 { width: 600px; height: 600px; background: radial-gradient(circle, #F2C29A, #E8621A20); top: -10%; left: -10%; }
+  .blob-2 { width: 500px; height: 500px; background: radial-gradient(circle, #D4E8C2, #3D7A5C20); top: 30%; right: -15%; }
+  .blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, #C2D0E8, #2D5FA820); bottom: 10%; left: 20%; }
+
+  /* Navbar */
+  nav {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(250,247,242,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    box-shadow: 0 4px 24px rgba(26,21,16,0.08);
+    width: min(90vw, 720px);
+  }
+  .nav-logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text-dark);
+    text-decoration: none;
+    flex-shrink: 0;
+    letter-spacing: -0.5px;
+  }
+  .nav-logo span { color: var(--accent-orange); }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+    margin-left: auto;
+    align-items: center;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text-mid);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text-dark); }
+  .nav-cta {
+    background: var(--text-dark);
+    color: var(--cream) !important;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    transition: background 0.2s, transform 0.15s !important;
+  }
+  .nav-cta:hover { background: var(--accent-orange) !important; transform: scale(1.03); }
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 4px;
+  }
+  .nav-hamburger span { width: 22px; height: 2px; background: var(--text-dark); border-radius: 2px; transition: 0.3s; }
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--cream);
+    z-index: 999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 400;
+  }
+  .mobile-close {
+    position: absolute;
+    top: 28px; right: 28px;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-dark);
+    background: none;
+    border: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* General layout */
+  section { position: relative; z-index: 1; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94); }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ====== HERO ====== */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 0 80px;
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(232,98,26,0.1);
+    border: 1px solid rgba(232,98,26,0.2);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-orange);
+    margin-bottom: 24px;
+    width: fit-content;
+  }
+  .hero-badge::before { content: '●'; font-size: 8px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  .hero-headline {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(40px, 5.5vw, 70px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+  }
+  .hero-headline em {
+    font-style: italic;
+    color: var(--accent-orange);
+  }
+  .hero-sub {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--text-mid);
+    margin-bottom: 36px;
+    max-width: 440px;
+  }
+  .hero-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .hero-form input[type="email"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 14px 20px;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    background: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .hero-form input[type="email"]:focus { border-color: var(--accent-orange); }
+  .btn-primary {
+    padding: 14px 28px;
+    background: var(--accent-orange);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: none;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(232,98,26,0.3);
+  }
+  .btn-primary:hover { background: #D4520E; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,98,26,0.4); }
+
+  .social-proof {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .avatar-stack { display: flex; }
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2.5px solid var(--cream);
+    margin-left: -10px;
+    background: var(--warm-tan);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-mid);
+    overflow: hidden;
+  }
+  .avatar:first-child { margin-left: 0; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .social-proof-text { font-size: 13px; color: var(--text-mid); line-height: 1.4; }
+  .social-proof-text strong { color: var(--text-dark); display: block; }
+
+  /* 3D Cards in hero */
+  .hero-cards {
+    position: relative;
+    height: 480px;
+  }
+  .floating-card {
+    position: absolute;
+    background: white;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.1s ease;
+    will-change: transform;
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+  .card-creator {
+    width: 240px;
+    top: 20px; left: 10px;
+    animation: float1 4s ease-in-out infinite;
+    z-index: 3;
+  }
+  .card-brand {
+    width: 220px;
+    top: 140px; right: 0px;
+    animation: float2 5s ease-in-out infinite;
+    z-index: 2;
+  }
+  .card-credits {
+    width: 200px;
+    bottom: 40px; left: 60px;
+    animation: float3 4.5s ease-in-out infinite;
+    z-index: 4;
+  }
+  @keyframes float1 { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-12px) rotate(-2deg); } }
+  @keyframes float2 { 0%,100% { transform: translateY(0) rotate(2deg); } 50% { transform: translateY(-16px) rotate(2deg); } }
+  @keyframes float3 { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(-1deg); } }
+
+  .fc-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+  .fc-avatar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .fc-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #E8D5C0, #C8A880); flex-shrink: 0; }
+  .fc-name { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+  .fc-sub { font-size: 11px; color: var(--text-light); }
+  .fc-tag {
+    display: inline-block;
+    background: rgba(61,122,92,0.1);
+    color: var(--accent-green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin: 3px 3px 0 0;
+  }
+  .fc-divider { height: 1px; background: var(--cream-dark); margin: 14px 0; }
+  .fc-brand-logo {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--accent-blue);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .fc-reward {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Fraunces', serif;
+    color: var(--accent-orange);
+  }
+  .fc-reward-sub { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .fc-credit-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent-gold), #E8A830);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 16px rgba(212,168,67,0.4);
+  }
+  .fc-credit-amount {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+  }
+  .fc-credit-label { font-size: 12px; color: var(--text-light); margin-bottom: 10px; }
+  .fc-progress { height: 6px; background: var(--cream-dark); border-radius: 3px; overflow: hidden; }
+  .fc-progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-gold), #E8A830); border-radius: 3px; width: 72%; animation: progress-anim 2s ease-out forwards; }
+  @keyframes progress-anim { from { width: 0; } to { width: 72%; } }
+  .fc-progress-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-light); margin-top: 5px; }
+
+  /* ====== MARQUEE ====== */
+  .marquee-section {
+    background: var(--text-dark);
+    padding: 16px 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+  .marquee-track {
+    display: flex;
+    gap: 0;
+    animation: marquee 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 28px;
+    color: rgba(250,247,242,0.7);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  .marquee-item span { color: var(--accent-orange); font-size: 10px; }
+
+  /* ====== PROBLEM ====== */
+  #problem { padding: 100px 0; }
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent-orange);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+    color: var(--text-dark);
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 17px;
+    color: var(--text-mid);
+    line-height: 1.6;
+    max-width: 520px;
+    margin-bottom: 60px;
+  }
+  .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+  .pain-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    border: 1px solid var(--border);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: none;
+  }
+  .pain-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .pain-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+  .pain-card h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--text-dark); letter-spacing: -0.5px; }
+  .pain-card p { font-size: 14px; line-height: 1.6; color: var(--text-mid); }
+  .quote-card {
+    background: linear-gradient(135deg, #FDF5EB, #F5E8D8);
+    border-radius: 20px;
+    padding: 36px;
+    border: 1px solid rgba(212,168,67,0.2);
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .quote-mark {
+    font-family: 'Fraunces', serif;
+    font-size: 80px;
+    color: var(--accent-gold);
+    line-height: 0.8;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+  .quote-text { font-size: 18px; line-height: 1.65; color: var(--text-dark); font-style: italic; margin-bottom: 16px; }
+  .quote-author { display: flex; align-items: center; gap: 12px; }
+  .quote-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #C8A880, #9C6E40); }
+  .quote-name { font-weight: 700; font-size: 14px; }
+  .quote-role { font-size: 13px; color: var(--text-light); }
+
+  /* ====== HOW IT WORKS ====== */
+  #how { padding: 100px 0; background: var(--cream-dark); }
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    position: relative;
+    margin-top: 60px;
+  }
+  .steps-grid::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: calc(16% + 20px);
+    right: calc(16% + 20px);
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--accent-orange), var(--accent-gold), var(--accent-green));
+    z-index: 0;
+  }
+  .step {
+    text-align: center;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .step-number {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    transition: transform 0.3s;
+  }
+  .step:hover .step-number { transform: scale(1.08); }
+  .step-number-1 { background: rgba(232,98,26,0.1); color: var(--accent-orange); border: 2px solid rgba(232,98,26,0.3); }
+  .step-number-2 { background: rgba(212,168,67,0.1); color: var(--accent-gold); border: 2px solid rgba(212,168,67,0.3); }
+  .step-number-3 { background: rgba(61,122,92,0.1); color: var(--accent-green); border: 2px solid rgba(61,122,92,0.3); }
+  .step h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .step p { font-size: 14px; color: var(--text-mid); line-height: 1.65; }
+
+  /* ====== WHO IT'S FOR ====== */
+  #who { padding: 100px 0; }
+  .who-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 60px;
+  }
+  .who-card {
+    border-radius: 24px;
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+    transition: transform 0.3s;
+  }
+  .who-card:hover { transform: translateY(-6px); }
+  .who-card-1 { background: linear-gradient(135deg, #FDF0E6, #F5DFC4); }
+  .who-card-2 { background: linear-gradient(135deg, #E6F0EE, #C4DFD8); }
+  .who-card-3 { background: linear-gradient(135deg, #E6EBF5, #C4CFDF); }
+  .who-card-icon { font-size: 40px; margin-bottom: 20px; }
+  .who-card h3 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .who-card p { font-size: 14px; line-height: 1.65; color: var(--text-mid); margin-bottom: 20px; }
+  .who-list { list-style: none; }
+  .who-list li { font-size: 13px; color: var(--text-mid); padding: 5px 0; display: flex; gap: 8px; align-items: flex-start; }
+  .who-list li::before { content: '→'; color: var(--accent-orange); flex-shrink: 0; margin-top: 1px; }
+
+  /* ====== CREDIT ECONOMY ====== */
+  #credits { padding: 100px 0; background: var(--text-dark); color: var(--cream); }
+  #credits .section-label { color: var(--accent-gold); }
+  #credits .section-title { color: var(--cream); }
+  #credits .section-sub { color: rgba(250,247,242,0.65); }
+  .credits-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 20px;
+  }
+  .orbit-container {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    margin: 0 auto;
+  }
+  .orbit-center {
+    position: absolute;
+    width: 100px; height: 100px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--accent-gold), #E8A830);
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 0 40px rgba(212,168,67,0.4);
+    animation: orbitPulse 3s ease-in-out infinite;
+  }
+  @keyframes orbitPulse { 0%,100% { box-shadow: 0 0 40px rgba(212,168,67,0.4); } 50% { box-shadow: 0 0 70px rgba(212,168,67,0.7); } }
+  .orbit-center span { font-family: 'Fraunces', serif; font-size: 11px; color: white; font-weight: 600; margin-top: 2px; letter-spacing: 0.5px; }
+  .orbit-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px dashed rgba(255,255,255,0.12);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .orbit-ring-1 { width: 200px; height: 200px; animation: spin 12s linear infinite; }
+  .orbit-ring-2 { width: 310px; height: 310px; animation: spin 20s linear infinite reverse; }
+  @keyframes spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+  .orbit-node {
+    position: absolute;
+    width: 52px; height: 52px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    transform: translate(-50%, -50%);
+  }
+  /* Orbit node positions */
+  .on-1 { top: 16%; left: 50%; }
+  .on-2 { top: 50%; left: 84%; }
+  .on-3 { top: 84%; left: 50%; }
+  .on-4 { top: 50%; left: 16%; }
+  .on-5 { top: 8%; left: 50%; }
+  .on-6 { top: 50%; left: 92%; }
+  .on-7 { top: 92%; left: 50%; }
+  .on-8 { top: 50%; left: 8%; }
+
+  .credits-features { display: flex; flex-direction: column; gap: 24px; }
+  .credit-feat {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 24px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: background 0.2s;
+  }
+  .credit-feat:hover { background: rgba(255,255,255,0.07); }
+  .credit-feat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .credit-feat h4 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--cream); margin-bottom: 6px; letter-spacing: -0.3px; }
+  .credit-feat p { font-size: 13px; color: rgba(250,247,242,0.55); line-height: 1.6; }
+
+  /* ====== TESTIMONIALS ====== */
+  #testimonials { padding: 100px 0; }
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    margin-top: 60px;
+  }
+  .testi-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: none;
+  }
+  .testi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .testi-featured {
+    background: var(--text-dark);
+    color: var(--cream);
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .testi-stars { color: var(--accent-gold); font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; }
+  .testi-text { font-size: 15px; line-height: 1.7; color: var(--text-mid); }
+  .testi-featured .testi-text { color: rgba(250,247,242,0.75); }
+  .testi-featured-text { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.5; font-weight: 400; font-style: italic; color: var(--cream); margin: 24px 0; }
+  .testi-author { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+  .testi-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .testi-name { font-weight: 700; font-size: 14px; }
+  .testi-role { font-size: 12px; color: var(--text-light); }
+  .testi-featured .testi-role { color: rgba(250,247,242,0.4); }
+  .testi-featured .testi-name { color: var(--cream); }
+  .testi-tag {
+    display: inline-block;
+    background: rgba(232,98,26,0.1);
+    color: var(--accent-orange);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  /* ====== CTA ====== */
+  #cta {
+    padding: 100px 0;
+    background: linear-gradient(135deg, #FDF0E6, #F0EBF8);
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-inner { text-align: center; max-width: 580px; margin: 0 auto; }
+  .cta-inner .section-title { margin-bottom: 16px; }
+  .cta-inner .section-sub { margin: 0 auto 40px; }
+  .cta-form {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .cta-form input[type="email"] {
+    flex: 1;
+    min-width: 220px;
+    max-width: 320px;
+    padding: 15px 22px;
+    border: 1.5px solid rgba(232,98,26,0.2);
+    border-radius: 999px;
+    background: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .cta-form input[type="email"]:focus { border-color: var(--accent-orange); }
+  .success-msg {
+    display: none;
+    background: rgba(61,122,92,0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(61,122,92,0.2);
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-weight: 600;
+    font-size: 15px;
+    margin-top: 16px;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .cta-note { font-size: 13px; color: var(--text-light); margin-top: 16px; }
+
+  /* ====== FOOTER ====== */
+  footer {
+    padding: 48px 0;
+    background: var(--text-dark);
+    color: rgba(250,247,242,0.5);
+  }
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .footer-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cream);
+    text-decoration: none;
+  }
+  .footer-logo span { color: var(--accent-orange); }
+  .footer-tagline { font-size: 13px; margin-top: 4px; }
+  .footer-links { display: flex; gap: 24px; align-items: center; }
+  .footer-links a {
+    color: rgba(250,247,242,0.5);
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--cream); }
+  .footer-copyright { font-size: 13px; width: 100%; text-align: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.07); margin-top: 24px; }
+
+  /* Tilt effect */
+  .tilt-card { transform-style: preserve-3d; }
+
+  /* Card hover tilt */
+  @media (min-width: 768px) {
+    .pain-card, .testi-card, .who-card, .credit-feat {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+    .hero-cards { display: none; }
+    .pain-grid { grid-template-columns: 1fr; }
+    .steps-grid { grid-template-columns: 1fr; gap: 48px; }
+    .steps-grid::before { display: none; }
+    .who-grid { grid-template-columns: 1fr; }
+    .credits-inner { grid-template-columns: 1fr; }
+    .orbit-container { width: 280px; height: 280px; }
+    .orbit-ring-2 { width: 240px; height: 240px; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .testi-featured { grid-row: auto; }
+    nav .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    .footer-inner { flex-direction: column; align-items: flex-start; }
+  }
+
+  @media (max-width: 600px) {
+    nav { width: calc(100% - 32px); top: 12px; }
+    .quote-card { flex-direction: column; gap: 12px; }
+    .quote-mark { font-size: 50px; }
+  }
+
+  /* Accessible */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Blobs -->
+<div class="blob-container">
+  <div class="blob blob-1" id="blob1"></div>
+  <div class="blob blob-2" id="blob2"></div>
+  <div class="blob blob-3" id="blob3"></div>
+</div>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="menuClose">✕</button>
+  <a href="#how" onclick="closeMobileMenu()">How it works</a>
+  <a href="#who" onclick="closeMobileMenu()">Who it's for</a>
+  <a href="#credits" onclick="closeMobileMenu()">Credits</a>
+  <a href="#testimonials" onclick="closeMobileMenu()">Stories</a>
+  <a href="#cta" onclick="closeMobileMenu()" class="nav-cta" style="background:var(--accent-orange);color:white;padding:12px 28px;border-radius:999px;font-weight:700;">Join Waitlist</a>
+</div>
+
+<!-- Navbar -->
+<nav>
+  <a href="#" class="nav-logo">Compute<span>Flow</span></a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#who">Who it's for</a></li>
+    <li><a href="#credits">Credits</a></li>
+    <li><a href="#testimonials">Stories</a></li>
+    <li><a href="#cta" class="nav-cta">Join Waitlist</a></li>
+  </ul>
+  <div class="nav-hamburger" id="hamburger" onclick="openMobileMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge reveal">🚀 Now open for early access</div>
+        <h1 class="hero-headline reveal reveal-delay-1">Your <em>skills</em> should pay for your AI</h1>
+        <p class="hero-sub reveal reveal-delay-2">ComputeFlow is the social marketplace where AI creators earn compute credits from brand rewards and community support — and spend them on the tools that power their work.</p>
+        <form class="hero-form reveal reveal-delay-3" action="https://formspree.io/f/xvzbwdll" method="POST" id="heroForm">
+          <input type="hidden" name="_subject" value="New ComputeFlow Waitlist Signup">
+          <input type="email" name="email" placeholder="Your email address" required>
+          <button type="submit" class="btn-primary">Get early access →</button>
+        </form>
+        <div id="heroSuccess" class="success-msg">🎉 You're on the list! We'll be in touch soon.</div>
+        <div class="social-proof reveal reveal-delay-4">
+          <div class="avatar-stack">
+            <div class="avatar" style="background:linear-gradient(135deg,#E8C5A0,#C8956A)">P</div>
+            <div class="avatar" style="background:linear-gradient(135deg,#A0C5E8,#6A95C8)">R</div>
+            <div class="avatar" style="background:linear-gradient(135deg,#A0E8C5,#6AC895)">S</div>
+            <div class="avatar" style="background:linear-gradient(135deg,#E8A0C5,#C86A95)">A</div>
+            <div class="avatar" style="background:linear-gradient(135deg,#C5E8A0,#95C86A)">N</div>
+          </div>
+          <div class="social-proof-text">
+            <strong>1,200+ creators joined</strong>
+            From Mumbai to Berlin, already creating
+          </div>
+        </div>
+      </div>
+      <div class="hero-cards" id="heroCards">
+        <!-- Creator Card -->
+        <div class="floating-card card-creator" id="card1">
+          <div class="fc-label">Creator Profile</div>
+          <div class="fc-avatar-row">
+            <div class="fc-avatar"></div>
+            <div>
+              <div class="fc-name">Priya Mehra</div>
+              <div class="fc-sub">AI Artist · Mumbai</div>
+            </div>
+          </div>
+          <div class="fc-tag">Generative Art</div>
+          <div class="fc-tag">3D Renders</div>
+          <div class="fc-tag">LoRA Models</div>
+          <div class="fc-divider"></div>
+          <div style="font-size:12px;color:var(--text-light)">💫 420 compute credits earned this month</div>
+        </div>
+
+        <!-- Brand Reward Card -->
+        <div class="floating-card card-brand" id="card2">
+          <div class="fc-label">Brand Reward</div>
+          <div class="fc-brand-logo">A</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Adobe Express</div>
+          <div style="font-size:11px;color:var(--text-light);margin-bottom:14px;">Tag us in your creative work</div>
+          <div class="fc-reward">+150 ⚡</div>
+          <div class="fc-reward-sub">Credits per approved post</div>
+        </div>
+
+        <!-- Credits Card -->
+        <div class="floating-card card-credits" id="card3">
+          <div class="fc-label">Credits Balance</div>
+          <div class="fc-credit-icon">⚡</div>
+          <div class="fc-credit-amount">640</div>
+          <div class="fc-credit-label">Compute Credits Available</div>
+          <div class="fc-progress"><div class="fc-progress-bar"></div></div>
+          <div class="fc-progress-labels"><span>0</span><span>Goal: 900 (Claude Pro)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MARQUEE ====== -->
+<div class="marquee-section">
+  <div class="marquee-track" id="marquee">
+    <div class="marquee-item"><span>✦</span> AI Artists</div>
+    <div class="marquee-item"><span>✦</span> Indie Researchers</div>
+    <div class="marquee-item"><span>✦</span> Prompt Engineers</div>
+    <div class="marquee-item"><span>✦</span> ML Practitioners</div>
+    <div class="marquee-item"><span>✦</span> Fine-tuners</div>
+    <div class="marquee-item"><span>✦</span> Generative Designers</div>
+    <div class="marquee-item"><span>✦</span> AI Filmmakers</div>
+    <div class="marquee-item"><span>✦</span> Data Storytellers</div>
+    <div class="marquee-item"><span>✦</span> Voice Model Creators</div>
+    <div class="marquee-item"><span>✦</span> AI Writers</div>
+    <div class="marquee-item"><span>✦</span> Computer Vision Hackers</div>
+    <div class="marquee-item"><span>✦</span> AI Artists</div>
+    <div class="marquee-item"><span>✦</span> Indie Researchers</div>
+    <div class="marquee-item"><span>✦</span> Prompt Engineers</div>
+    <div class="marquee-item"><span>✦</span> ML Practitioners</div>
+    <div class="marquee-item"><span>✦</span> Fine-tuners</div>
+    <div class="marquee-item"><span>✦</span> Generative Designers</div>
+    <div class="marquee-item"><span>✦</span> AI Filmmakers</div>
+    <div class="marquee-item"><span>✦</span> Data Storytellers</div>
+    <div class="marquee-item"><span>✦</span> Voice Model Creators</div>
+    <div class="marquee-item"><span>✦</span> AI Writers</div>
+    <div class="marquee-item"><span>✦</span> Computer Vision Hackers</div>
+  </div>
+</div>
+
+<!-- ====== PROBLEM ====== -->
+<section id="problem">
+  <div class="container">
+    <div class="reveal"><div class="section-label">The Problem</div></div>
+    <h2 class="section-title reveal reveal-delay-1">You're creating the future.<br>You can't afford the tools.</h2>
+    <p class="section-sub reveal reveal-delay-2">Talented AI creators are priced out of the very tools their work depends on. Subscriptions compound. Followers don't pay bills. And brands have no real way to reach you.</p>
+    <div class="pain-grid">
+      <div class="pain-card reveal reveal-delay-1">
+        <div class="pain-icon" style="background:rgba(232,98,26,0.1)">💸</div>
+        <h3>API costs don't stop</h3>
+        <p>Claude, GPT-4, Runway, Midjourney — running these for real creative work costs ₹5,000–₹15,000 a month. Subscriptions add up faster than followers.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-2">
+        <div class="pain-icon" style="background:rgba(45,95,168,0.1)">👻</div>
+        <h3>Likes are worthless</h3>
+        <p>Your work gets hundreds of reactions, reposts, saves. None of it converts. The platforms profit from your creativity while you can't pay for the next API call.</p>
+      </div>
+      <div class="pain-card reveal reveal-delay-3">
+        <div class="pain-icon" style="background:rgba(61,122,92,0.1)">📣</div>
+        <h3>Brands can't find you</h3>
+        <p>Sponsors want AI creators. But the pipeline is broken — DMs, agencies, spreadsheets. Real partnerships never happen. The money stays locked on the table.</p>
+      </div>
+    </div>
+    <div class="quote-card reveal">
+      <div class="quote-mark">"</div>
+      <div>
+        <p class="quote-text">I spent 3 months building a generative music model that got 40,000 views on Twitter. Then my Replicate credits ran out. I had to take freelance work just to keep the project alive. The community loved my work but there was no way for them to actually support it.</p>
+        <div class="quote-author">
+          <div class="quote-avatar"></div>
+          <div>
+            <div class="quote-name">Arjun Krishnamurthy</div>
+            <div class="quote-role">AI Music Creator · Bengaluru, India</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== HOW IT WORKS ====== -->
+<section id="how">
+  <div class="container">
+    <div class="reveal"><div class="section-label">How it works</div></div>
+    <h2 class="section-title reveal reveal-delay-1">Three steps.<br>One flywheel.</h2>
+    <div class="steps-grid">
+      <div class="step reveal reveal-delay-1">
+        <div class="step-number step-number-1">1</div>
+        <h3>Post your work</h3>
+        <p>Share your AI projects, models, art, and research. Tag brands whose tools you used. Build your creator profile with context that actually matters to sponsors.</p>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-number step-number-2">2</div>
+        <h3>Earn compute credits</h3>
+        <p>Brands reward authentic content. Your community donates credits instead of likes. Every interaction becomes real, spendable value in your account.</p>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <div class="step-number step-number-3">3</div>
+        <h3>Fund your AI stack</h3>
+        <p>Redeem credits directly for Claude Pro, Runway Gen-3, ChatGPT Plus, and more. Your creativity pays for the next iteration of your creativity.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== WHO IT'S FOR ====== -->
+<section id="who">
+  <div class="container">
+    <div class="reveal"><div class="section-label">Who it's for</div></div>
+    <h2 class="section-title reveal reveal-delay-1">Built for the people<br>building what's next.</h2>
+    <div class="who-grid">
+      <div class="who-card who-card-1 reveal reveal-delay-1">
+        <div class="who-card-icon">🎨</div>
+        <h3>Creators</h3>
+        <p>AI artists, filmmakers, musicians, and writers who want their output to fund their tools — without grinding for brand deals.</p>
+        <ul class="who-list">
+          <li>Earn credits from every post</li>
+          <li>Get discovered by relevant brands</li>
+          <li>Build a portfolio that converts</li>
+          <li>Community donations unlock tools</li>
+        </ul>
+      </div>
+      <div class="who-card who-card-2 reveal reveal-delay-2">
+        <div class="who-card-icon">🔬</div>
+        <h3>Researchers</h3>
+        <p>Independent ML researchers and academics who need compute to do real science — but can't always access institutional resources.</p>
+        <ul class="who-list">
+          <li>Publish findings, earn credits</li>
+          <li>Get compute for experiments</li>
+          <li>Build an audience for your work</li>
+          <li>Connect with aligned sponsors</li>
+        </ul>
+      </div>
+      <div class="who-card who-card-3 reveal reveal-delay-3">
+        <div class="who-card-icon">🏢</div>
+        <h3>Brands</h3>
+        <p>AI tool companies and forward-thinking tech brands who want authentic creator content — not influencer theater.</p>
+        <ul class="who-list">
+          <li>Reach real AI creators at scale</li>
+          <li>Reward usage, not just followers</li>
+          <li>Measure authentic engagement</li>
+          <li>Build community goodwill</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CREDIT ECONOMY ====== -->
+<section id="credits">
+  <div class="container">
+    <div class="credits-inner">
+      <div>
+        <div class="reveal"><div class="section-label">The Credit Economy</div></div>
+        <h2 class="section-title reveal reveal-delay-1">Value that moves<br>in every direction.</h2>
+        <p class="section-sub reveal reveal-delay-2">ComputeFlow credits aren't points — they're portable, spendable compute power. Brands put them in, creators earn them, tools accept them.</p>
+        <div class="credits-features">
+          <div class="credit-feat reveal reveal-delay-2">
+            <div class="credit-feat-icon" style="background:rgba(232,98,26,0.15)">⚡</div>
+            <div>
+              <h4>Brand Rewards</h4>
+              <p>Tag a brand tool in your post and get verified. Credits land in your wallet within 48 hours, no negotiation required.</p>
+            </div>
+          </div>
+          <div class="credit-feat reveal reveal-delay-3">
+            <div class="credit-feat-icon" style="background:rgba(212,168,67,0.15)">💛</div>
+            <div>
+              <h4>Community Donations</h4>
+              <p>Your audience supports your work with credits instead of empty likes. Real patronage, no payment processors.</p>
+            </div>
+          </div>
+          <div class="credit-feat reveal reveal-delay-4">
+            <div class="credit-feat-icon" style="background:rgba(61,122,92,0.15)">🔑</div>
+            <div>
+              <h4>Direct Tool Redemption</h4>
+              <p>Redeem against Claude, Runway, Replicate, and more. No middlemen. No gift cards. Just access to the tools you need.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="orbit-container reveal">
+          <div class="orbit-ring orbit-ring-1">
+            <div class="orbit-node on-1">🤖</div>
+            <div class="orbit-node on-2">🎬</div>
+            <div class="orbit-node on-3">🎵</div>
+            <div class="orbit-node on-4">🖼️</div>
+          </div>
+          <div class="orbit-ring orbit-ring-2">
+            <div class="orbit-node on-5">🧬</div>
+            <div class="orbit-node on-6">💡</div>
+            <div class="orbit-node on-7">🌐</div>
+            <div class="orbit-node on-8">✨</div>
+          </div>
+          <div class="orbit-center">
+            <span style="font-size:28px">⚡</span>
+            <span>Credits</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TESTIMONIALS ====== -->
+<section id="testimonials">
+  <div class="container">
+    <div class="reveal"><div class="section-label">Early Stories</div></div>
+    <h2 class="section-title reveal reveal-delay-1">Creators are already<br>feeling the difference.</h2>
+    <div class="testimonials-grid">
+      <!-- Featured -->
+      <div class="testi-card testi-featured reveal">
+        <div>
+          <div class="testi-tag">⭐ Featured Creator</div>
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-featured-text">"I posted a Midjourney workflow with Adobe tagged, and within a week I had 280 credits in my wallet. That's half a month of Claude API coverage. This is actually changing how I plan projects."</p>
+          <p class="testi-text">I used to do client work I hated just to fund my real creative projects. ComputeFlow flipped that. Now the projects themselves generate the credits I need to keep going.</p>
+        </div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#8B5E3C,#5C3A1E);color:white">SR</div>
+          <div>
+            <div class="testi-name">Sneha Rajan</div>
+            <div class="testi-role">Generative Artist · Chennai, India</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"As an independent researcher, I had no way to sustain my compute costs between grants. ComputeFlow let my Twitter followers actually support my work with something real — not just likes."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#3D5A80,#1E3A5F);color:white">RV</div>
+          <div>
+            <div class="testi-name">Rohan Venkataramaiah</div>
+            <div class="testi-role">ML Researcher · IISc Bangalore</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"The brand integration is seamless — I was already tagging tools in my posts. Now those tags actually translate into credits. It's monetization that feels native to how I already create."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,#5C7A3A,#3A5C1E);color:white">TK</div>
+          <div>
+            <div class="testi-name">Tanvir Khan</div>
+            <div class="testi-role">AI Video Creator · Hyderabad</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CTA ====== -->
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="reveal"><div class="section-label" style="text-align:center">Get early access</div></div>
+      <h2 class="section-title reveal reveal-delay-1">Stop trading creativity<br>for compute.</h2>
+      <p class="section-sub reveal reveal-delay-2">Join the waitlist. We're onboarding creators in waves — early members get bonus credits and founding creator status.</p>
+      <form class="cta-form reveal reveal-delay-3" action="https://formspree.io/f/xvzbwdll" method="POST" id="ctaForm">
+        <input type="hidden" name="_subject" value="New ComputeFlow Waitlist Signup">
+        <input type="email" name="email" placeholder="your@email.com" required>
+        <button type="submit" class="btn-primary">Join the waitlist →</button>
+      </form>
+      <div id="ctaSuccess" class="success-msg">🎉 You're on the list! We'll be in touch soon.</div>
+      <p class="cta-note reveal reveal-delay-4">No spam. No noise. Just your early access invite when it's ready.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FOOTER ====== -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <a href="#" class="footer-logo">Compute<span>Flow</span></a>
+        <div class="footer-tagline">Your skills should pay for your AI.</div>
+      </div>
+      <div class="footer-links">
+        <a href="https://twitter.com" target="_blank">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Twitter
+        </a>
+        <a href="https://discord.com" target="_blank">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.112 18.1.132 18.115a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          Discord
+        </a>
+        <a href="mailto:hello@computeflow.ai">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+          Contact
+        </a>
+      </div>
+    </div>
+    <div class="footer-copyright">© 2025 ComputeFlow. All rights reserved. Built for creators, by creators.</div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button, input, .pain-card, .who-card, .testi-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '20px';
+      cursor.style.height = '20px';
+      ring.style.width = '50px';
+      ring.style.height = '50px';
+      ring.style.opacity = '0.8';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '12px';
+      cursor.style.height = '12px';
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+      ring.style.opacity = '0.5';
+    });
+  });
+
+  // Blob parallax
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 2;
+    const y = (e.clientY / window.innerHeight - 0.5) * 2;
+    document.getElementById('blob1').style.transform = `translate(${x * 30}px, ${y * 30}px)`;
+    document.getElementById('blob2').style.transform = `translate(${x * -20}px, ${y * -20}px)`;
+    document.getElementById('blob3').style.transform = `translate(${x * 15}px, ${y * 25}px)`;
+  });
+
+  // Hero card parallax
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 2;
+    const y = (e.clientY / window.innerHeight - 0.5) * 2;
+    const c1 = document.getElementById('card1');
+    const c2 = document.getElementById('card2');
+    const c3 = document.getElementById('card3');
+    if (c1) c1.style.transform = `translateY(0) rotate(-2deg) translate(${x * 8}px, ${y * 8}px)`;
+    if (c2) c2.style.transform = `translateY(0) rotate(2deg) translate(${x * -12}px, ${y * -5}px)`;
+    if (c3) c3.style.transform = `translateY(0) rotate(-1deg) translate(${x * 6}px, ${y * 10}px)`;
+  });
+
+  // Card tilt effect
+  document.querySelectorAll('.pain-card, .who-card, .testi-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `translateY(-4px) rotateX(${y * -8}deg) rotateY(${x * 8}deg)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Mobile menu
+  function openMobileMenu() { document.getElementById('mobileMenu').classList.add('open'); }
+  function closeMobileMenu() { document.getElementById('mobileMenu').classList.remove('open'); }
+  document.getElementById('menuClose').addEventListener('click', closeMobileMenu);
+
+  // Formspree success handling
+  // Hero form
+  document.getElementById('heroForm').addEventListener('submit', function(e) {
+    const form = this;
+    const successDiv = document.getElementById('heroSuccess');
+    // After a short delay (for Formspree redirect to be intercepted), show success
+    // Use fetch approach to prevent page redirect
+    e.preventDefault();
+    const data = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    }).then(res => {
+      if (res.ok) {
+        form.style.display = 'none';
+        successDiv.style.display = 'block';
+      }
+    }).catch(() => {
+      // fallback: submit normally
+      form.submit();
+    });
+  });
+
+  // CTA form
+  document.getElementById('ctaForm').addEventListener('submit', function(e) {
+    const form = this;
+    const successDiv = document.getElementById('ctaSuccess');
+    e.preventDefault();
+    const data = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    }).then(res => {
+      if (res.ok) {
+        form.style.display = 'none';
+        successDiv.style.display = 'block';
+      }
+    }).catch(() => {
+      form.submit();
+    });
+  });
+</script>
+</body>
+</html>
